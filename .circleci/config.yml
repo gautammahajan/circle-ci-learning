@@ -18,5 +18,5 @@ jobs:
   build:
     docker:
       - image: circleci/node:7.10
-     steps:
-       - run echo build step
+    steps:
+      - run echo build step
