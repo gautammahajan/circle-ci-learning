@@ -28,7 +28,7 @@ jobs:
       - run: echo test job
 
 workflows:
-  version: 2.1
+  version: 2
   # Name the workflow "welcome"
   welcome:
     # Run the welcome/run job in its own container
