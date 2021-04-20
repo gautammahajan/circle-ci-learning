@@ -4,11 +4,17 @@ requires attribute manages the dependency
 
 '''
 
+
+Circle ci has 2 offerings --> cloud and on-premise
+syntax of config file changes lil based on offering
+---------------------------------------------------------------------------------------------------------
+
 Project --> Github repo name populated automatically to circle ci
 ---------------------------------------------------------------------------------------------------------
 Orbs -->
 seems like tool, readily available orbs , we can trigegr the commands from it
-example--> below example uses maven/test command which is readily avaialble in maven orb
+example--> below example uses maven/test job which is readily avaialble in maven orb (kinda inheritance)
+
 
 version: 2.1
 orbs:
@@ -62,4 +68,119 @@ jobs:
 we can have custom commands defined which can be resued across multiple jobs rather than defining it repetadly across all jobs
 define command once --> reuse it
 https://circleci.com/docs/2.0/configuration-reference/#commands-requires-version-21
+
 ------------------------------------------------------------------------------------------------------
+
+Workflows -->
+run list of jobs (sequential , parallel or cron )
+plus there is new attribute where approval from user side is needed to proceed with job.
+
+workflows:
+  build_and_test: # name of your workflow
+    jobs:
+      - build1
+      - build2:
+          requires:
+            - build1 # wait for build1 job to complete successfully before starting
+            # see circleci.com/docs/2.0/workflows/ for more examples.
+      - build3:
+          requires:
+            - build1 # wait for build1 job to complete successfully before starting
+            # run build2 and build3 concurrently to save time.
+
+------------------------------------------------------------------------------------------------------
+
+Cache -->
+object storage , store files or directory of files ---> dependency caching
+
+version: 2.1
+
+jobs:
+  build1:
+    docker: # Each job requires specifying an executor
+      # (either docker, macos, or machine), see
+      # circleci.com/docs/2.0/executor-types/ for a comparison
+      # and more examples.
+      - image: circleci/ruby:2.4-node
+        auth:
+          username: mydockerhub-user
+          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
+    steps:
+      - checkout
+      - save_cache: # Caches dependencies with a cache key
+          # template for an environment variable,
+          # see circleci.com/docs/2.0/caching/
+          key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
+          paths:
+            - ~/circleci-demo-workflows
+
+  build2:
+    docker:
+      - image: circleci/ruby:2.4-node
+        auth:
+          username: mydockerhub-user
+          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
+    steps:
+      - restore_cache: # Restores the cached dependency.
+          key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
+
+
+----------------------------------------------------------------------------------------------------------------
+
+Workspace -->
+
+A workspace stores data unique to the job, which may be needed in downstream jobs.
+Each workflow has a temporary workspace associated with it.
+The workspace can be used to pass along unique data built during a job to other jobs in the same workflow.
+
+
+Similar to looper snapshot_workspace & restore_workspace steps available in
+
+version: 2
+jobs:
+  one:
+    docker:
+      - image: circleci/ruby:2.4.1
+        auth:
+          username: mydockerhub-user
+          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
+    steps:
+      - checkout
+      - run: echo "A first hello"
+      - run: mkdir -p my_workspace
+      - run: echo "Trying out workspaces" > my_workspace/echo-output
+      - persist_to_workspace:
+          # Must be an absolute path, or relative path from working_directory
+          root: my_workspace
+          # Must be relative path from root
+          paths:
+            - echo-output
+  two:
+    docker:
+      - image: circleci/ruby:2.4.1
+        auth:
+          username: mydockerhub-user
+          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
+    steps:
+      - checkout
+      - run: echo "A more familiar hi"
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: my_workspace
+
+      - run: |
+          if [[ $(cat my_workspace/echo-output) == "Trying out workspaces" ]]; then
+            echo "It worked!";
+          else
+            echo "Nope!"; exit 1
+          fi
+workflows:
+  version: 2
+  one_and_two:
+    jobs:
+      - one
+      - two:
+          requires:
+            - one
+
+----------------------------------------------------------------------------------------------------------------

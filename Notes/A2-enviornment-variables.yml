@@ -1,0 +1,95 @@
+Project settings --> add env variables -->
+
+secrets are neither readable not editable , delete the current env variable and add new one
+env variables [api token secrets] can be used across jobs
+
+if we wanna use variables across multiple projects , then we can use "contexts"
+Use Contexts to further restrict access to environment variables. Contexts are set from the Organization Settings in the CircleCI application.
+
+
+------------ Secret masking --------------
+
+secret value should not be dispalayed on build output.
+Secrets Masking will only prevent the value of the environment variable from appearing in your build output.
+
+
+---------------- Variable precendence ---------------------
+1. vars inside "shell" command
+2. vars declared in enviornment key for "run" step level
+3. vars decared in enviornment key at "job" level
+4. circle ci built in vars -- like git-url, git-repo  etc etc
+5. context env vars
+6. project env vars [ project settings ]
+
+
+1. within shell command
+
+ - run:
+    name: "var in shell command"
+    command: |
+      BERET="raspberry"
+      echo $ BERET
+
+2. enviornment key at "run" level
+
+ - run:
+     name: "setter"
+     command: echo $ BERET
+     enviornment:
+       BERET: raspberry
+
+
+3. enviornment key at "JOB" level
+
+jobs:
+  build-job:
+    docker:
+      - image: java
+    enviornment:
+      BERET: raspberry
+
+------------------------- Parameters accepted at job level -----------------------
+
+ version: 2.1
+
+ jobs:
+   build:
+     parameters:
+       org_name:
+         type: string
+         default: my_org
+       repo_name:
+         type: string
+         default: my_repo
+     docker:
+       - image: circleci/go:1.15.0
+         auth:
+           username: mydockerhub-user
+           password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
+     steps:
+       - run: echo "project directory is go/src/github.com/<< parameters.org_name >>/<< parameters.repo_name >>"
+
+ workflows:
+   my_workflow:
+     jobs:
+       - build:
+           org_name: my_organization
+           repo_name: project1
+
+       - build:
+           org_name: my_organization
+           repo_name: project2
+
+---------------------------------------- Add context variables ---------------------------------
+
+UI
+Org settings --> Create context (name) --> add env var name and values
+
+Use context for a job
+
+version: 2.1
+ workflows:
+   test-env-vars:
+     jobs:
+       - build:
+           context: my_context_name # has an env var called MY_ENV_VAR

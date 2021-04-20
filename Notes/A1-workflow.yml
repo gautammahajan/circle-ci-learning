@@ -1,0 +1,219 @@
+Workflow -->
+consis of list of jobs --> manages their run order
+schedule workflows --> cron
+fan in / fan out of jobs within workflows
+
+if we do not mention workflow in config file then we should add a job named "build"
+its default job which will run even though workflow is not declared
+
+below build and test jobs will run concurrently as we have not used "requires" key
+if we mention requires key , then it will be sequential execution
+
+----------------------- concurrent execution -------------------------------
+jobs:
+  build:
+    docker:
+      - image: circleci/<language>:<version TAG>
+        auth:
+          username: mydockerhub-user
+          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
+    steps:
+      - checkout
+      - run: <command>
+  test:
+    docker:
+      - image: circleci/<language>:<version TAG>
+        auth:
+          username: mydockerhub-user
+          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
+    steps:
+      - checkout
+      - run: <command>
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build
+      - test
+
+
+----------------------- sequential execution -------------------------------
+
+use "requires" key to set dependencies between jobs
+
+workflows:
+  version: 2
+  build-test-and-deploy:
+    jobs:
+      - build
+      - test1:
+          requires:
+            - build
+      - test2:
+          requires:
+            - test1
+      - deploy:
+          requires:
+            - test2
+
+
+
+
+----------------------- fan in / fan out example -------------------------------
+
+All tests are running parallely, once all tests are passed , deploy job will be executed
+
+
+workflows:
+  version: 2
+  build_accept_deploy:
+    jobs:
+      - build
+      - acceptance_test_1:
+          requires:
+            - build
+      - acceptance_test_2:
+          requires:
+            - build
+      - acceptance_test_3:
+          requires:
+            - build
+      - acceptance_test_4:
+          requires:
+            - build
+      - deploy:
+          requires:
+            - acceptance_test_1
+            - acceptance_test_2
+            - acceptance_test_3
+            - acceptance_test_4
+
+
+----------------------- Holding workflow for manual approaval -------------------------------
+
+add a job to the jobs list with the key "type approval"
+special kind of job with type == approval
+an arbitary name is given to such job , ex. hold/pause/wait etc
+
+*** approval is a special job type that is only available to jobs under the workflow key ***
+
+workflows:
+  version: 2
+  build-test-and-approval-deploy:
+    jobs:
+      - build  # your custom job from your config, that builds your code
+      - test1: # your custom job; runs test suite 1
+          requires: # test1 will not run until the `build` job is completed.
+            - build
+      - test2: # another custom job; runs test suite 2,
+          requires: # test2 is dependent on the success of job `test1`
+            - test1
+      - hold: # <<< A job that will require manual approval in the CircleCI web application.
+          type: approval # <<< This key-value pair will set your workflow to a status of "On Hold"
+          requires: # We only run the "hold" job when test2 has succeeded
+            - test2
+      # On approval of the `hold` job, any successive job that requires the `hold` job will run.
+      # In this case, a user is manually triggering the deploy job.
+      - deploy:
+          requires:
+            - hold
+
+
+----------------------- Scheduling a workflow -------------------------------
+
+schedule a workflow to run at a certain time for specific branches
+*** The triggers key is only added under your workflows key ***
+
+Wofklows are triggered on git push
+below example "commit" workflow gets triggered on each git push, while nightly workflow runs on 12am
+we can filter out branches using "filters" key as well
+
+workflows:
+  version: 2
+  commit:
+    jobs:
+      - test
+      - deploy
+  nightly:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters:
+            branches:                                                   // branch filtering
+              only:
+                - master
+                - beta
+
+----------------------- Using job context to share enviornment variables  -------------------------------
+
+
+workflows:
+  version: 2
+  build-test-and-deploy:
+    jobs:
+      - build
+      - test1:
+          requires:
+            - build
+          context: org-global
+      - test2:
+          requires:
+            - test1
+          context: org-global
+      - deploy:
+          requires:
+            - test2
+
+
+----------------------- Branch level job execution  -------------------------------
+
+Always use branching at workflow level rather than declaring it under jobs section
+
+
+workflows:
+  version: 2
+  dev_stage_pre-prod:
+    jobs:
+      - test_dev:
+          filters:  # using regex filters requires the entire branch to match
+            branches:
+              only:  # only branches matching the below regex filters will run
+                - dev
+                - /user-.*/
+      - test_stage:
+          filters:
+            branches:
+              only: stage
+      - test_pre-prod:
+          filters:
+            branches:
+              only: /pre-prod(?:-.+)?$/
+
+
+
+we can use ignore key as well to filter out
+
+
+workflows:
+  version: 2
+  build-n-deploy:
+    jobs:
+      - build:
+          filters:  # required since `deploy` has tag filters AND requires `build`
+            tags:
+              only: /.*/
+      - deploy:
+          requires:
+            - build
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+
+
+
+Each worflow has its own workspce, workspace can be shared among jobs which are under same workflow
+save workspace and attach it to next job
+
+Workflow can be re-run from failed job (UI)

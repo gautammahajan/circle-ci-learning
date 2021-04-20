@@ -1,3 +1,12 @@
 No conditional checking --> if , for , switch
 No exposeVars -->
 Similar to expose vars --> no way to declare json structure at variable section and use it in other flows
+
+
+
+Circle ci has hold -- manual approaval of job -- user has to explicitly go to UI and approve the job
+then subsequent jobs starts working
+
+
+There is no inline var declaration, shell script executes and assigns value declared variable
+var(derived) : shell script
