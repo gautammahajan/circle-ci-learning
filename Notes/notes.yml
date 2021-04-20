@@ -1,0 +1,65 @@
+'''
+requires attribute manages the dependency
+
+
+'''
+
+Project --> Github repo name populated automatically to circle ci
+---------------------------------------------------------------------------------------------------------
+Orbs -->
+seems like tool, readily available orbs , we can trigegr the commands from it
+example--> below example uses maven/test command which is readily avaialble in maven orb
+
+version: 2.1
+orbs:
+  maven: circleci/maven@0.0.12
+
+workflows:
+  maven-test"
+  jobs:
+    - maven/test
+------------------------------------------------------------------------------------------------------------------------
+Jobs -->
+define execution env (docker , linux, windows, macos)
+```Remote docker``` is command which spins up another container where all docker commands are run
+
+below 3 jobs with execution env, in docker there is primary container and sidecar/secondar containers
+common shared network (secondary containers, and ports are exposed on primary ) question **
+
+
+
+jobs:
+  build1: # job name
+    docker: # Specifies the primary container image,
+      - image: buildpack-deps:trusty
+        auth:
+          username: mydockerhub-user
+          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
+      - image: postgres:9.4.1 # Specifies the database image
+        auth:
+          username: mydockerhub-user
+          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
+        # for the secondary or service container run in a common
+        # network where ports exposed on the primary container are
+        # available on localhost.
+        environment: # Specifies the POSTGRES_USER authentication
+          # environment variable, see circleci.com/docs/2.0/env-vars/
+          # for instructions about using environment variables.
+          POSTGRES_USER: root
+  #...
+  build2:
+    machine: # Specifies a machine image that uses
+      # an Ubuntu version 20.04 image with Docker 19.03.13
+      # and docker-compose 1.27.4, follow CircleCI Discuss Announcements
+      # for new image releases.
+      image: ubuntu-2004:202010-01
+  #...
+  build3:
+    macos: # Specifies a macOS virtual machine with Xcode version 11.3
+      xcode: "11.3.0"
+
+
+we can have custom commands defined which can be resued across multiple jobs rather than defining it repetadly across all jobs
+define command once --> reuse it
+https://circleci.com/docs/2.0/configuration-reference/#commands-requires-version-21
+------------------------------------------------------------------------------------------------------

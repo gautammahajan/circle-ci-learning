@@ -1,0 +1,3 @@
+No conditional checking --> if , for , switch
+No exposeVars -->
+Similar to expose vars --> no way to declare json structure at variable section and use it in other flows
