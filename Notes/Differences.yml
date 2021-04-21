@@ -10,3 +10,18 @@ then subsequent jobs starts working
 
 There is no inline var declaration, shell script executes and assigns value declared variable
 var(derived) : shell script
+
+
+Sometimes tool installation takes time in out set-up, Circle-ci provides pre-configured images where tools are already set-up
+
+
+Cache size difference --> 500 mb max
+Circle ci provides way to cache any directory --> our set-up caches only node-modules/.m2
+but circle-ci has option to provide
+
+Circle ci caches .git, cache key is based on revision, if revision has not changed and job is getting triggered/build from UI
+It saves the time to fetch git repo
+
+
+No inheritance model in circle-ci.
+Plus execution of job from A to B

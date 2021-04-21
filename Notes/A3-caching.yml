@@ -1,0 +1,73 @@
+Dependency-caching -->
+
+
+
+
+Docker image(s) pre-built by CircleCI have tools preinstalled that are generic for building projects using the language the image is focused on.
+For example the circleci/ruby:2.4.1 image has useful tools like git, openssh-client, and gzip preinstalled.
+
+  -------------------- Writting to cache in workflows ---------------->
+
+  jobs in workflows shares the cache. Cache is immutable.
+  if 3 jobs running paralle, if they write to same cache key
+
+  job3 may use the cache either from job1's write or job2's write --> whoever saves cache first
+
+  to avoid race condition --> dependency betwn jobs suggested --> job1--> job2 --> job3
+
+
+
+  -------------------- Restoring cache ---------------->
+
+  CircleCI restores caches in the order of keys listed in the restore_cache step.
+  When it comes time to restore the cache, CircleCI first validates the cache based on the first (and most specific) key,
+  and then steps through the other keys looking for any other cache-key changes.
+
+When CircleCI encounters a list of keys, the cache will be restored from the first match.
+If there are multiple matches, the most recently generated cache will be used.
+
+steps:
+  - restore_cache:
+    keys:
+      # Find a cache corresponding to this specific package-lock.json checksum
+      # when this file is changed, this key will fail
+      - v1-npm-deps-{{ checksum "package-lock.json" }}
+      # Find the most recently generated cache used from any branch
+      - v1-npm-deps-
+
+
+We recommend keeping cache sizes under 500MB.
+Larger cache sizes are allowed but may cause problems due to a higher chance of decompression issues and corruption during download.
+To keep cache sizes down, consider splitting into multiple distinct caches.
+
+
+--------------- Save file/directory under cache -----------------------
+
+To save a cache of a file or directory, add the save_cache step to a job in your .circleci/config.yml file
+
+steps:
+  - save_cache:
+      key: my-cache
+      paths:
+        - my-file.txt
+        - my-project/my-dependencies-directory
+
+The path for directories is relative to the working_directory of your job. You can specify an absolute path if you choose.
+
+---------------------- keys and templates --------------------
+
+How to generate cache-key dynamically. A cache-key can be created by interpolating dynamic values — these are called templates.
+
+  myapp-{{ checksum "package-lock.json" }}      ------> myapp-+KlBebDceJh_zOWQIAJDLEkdkKoeldAldkaKiallQ=
+
+multiple templates available to create the cache key.
+
+  1. myapp-{{ checksum "package-lock.json" }}
+  2. myapp-{{ .Branch }}-{{ checksum "package-lock.json" }}
+
+During step execution, the templates above will be replaced by runtime values and use the resultant string as the key.
+
+
+---------------------- Git caching -----------------------------------
+
+
