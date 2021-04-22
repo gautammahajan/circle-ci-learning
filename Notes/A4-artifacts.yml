@@ -1,0 +1,38 @@
+--------------------  Artifacts --------------------------
+
+If a job produces persistent artifacts such as screenshots, coverage reports, core files, or deployment tarballs,
+CircleCI can automatically save and link them for you.
+
+Artifacts are stored on Amazon S3 and are protected with your CircleCI account for private projects.
+There is a 3GB curl file size limit.
+
+Besides actual artifacts [.jar, .apk etc] text/html/pdf docs are also uploaded, plus directory as well
+use store_artifacts step and mention the path of doc/directory
+
+There is publish report step which does similar for us.
+
+version: 2
+jobs:
+  build:
+    docker:
+      - image: python:3.6.3-jessie
+        auth:
+          username: mydockerhub-user
+          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
+
+    working_directory: /tmp
+    steps:
+      - run:
+          name: Creating Dummy Artifacts
+          command: |
+            echo "my artifact file" > /tmp/artifact-1;
+            mkdir /tmp/artifacts;
+            echo "my artifact files in a dir" > /tmp/artifacts/artifact-2;
+
+      - store_artifacts:
+          path: /tmp/artifact-1
+          destination: artifact-file
+
+      - store_artifacts:
+          path: /tmp/artifacts
+

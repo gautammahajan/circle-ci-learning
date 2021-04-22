@@ -1,0 +1,12 @@
+--------------  Collecting Test Metadata ------------------
+
+CircleCI to output test metadata as XML for some common test runners and store reports with the store_test_results step.
+
+- store_test_results:
+    path: test-results
+
+Where the path key is an absolute or relative path to your working_directory containing subdirectories of JUnit XML or Cucumber JSON test metadata files
+
+Circle ci publishes test results to insights or pushes it to artifacts
+
+

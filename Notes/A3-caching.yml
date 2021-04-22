@@ -70,4 +70,9 @@ During step execution, the templates above will be replaced by runtime values an
 
 ---------------------- Git caching -----------------------------------
 
+Even with the narrowest restore_cache option (source-v1-{{ .Branch }}-{{ .Revision }}),
+source caching can be greatly beneficial when, for example, running repeated builds against the same git revision
+(i.e., with API-triggered builds) or when using Workflows, where you might otherwise need to checkout the same repository once per Workflows job.
 
+
+That said, it’s worth comparing build times with and without source caching; git clone is often faster than restore_cache

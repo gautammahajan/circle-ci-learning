@@ -1,0 +1,34 @@
+At org level create a context. Looper GH repo.
+Context names must be unique for each GitHub or Bitbucket organization
+
+Create set of variables --> Looper-conext name given
+within workflow --> pass the context name to jobs --> within job we can use env variables
+
+example --> Looper-context
+variable_name -> hygieia_token
+variable_value --> abudyhshhs
+
+To use environment variables set on the Contexts page, the person running the workflow must be a member of the organization for which the context is set
+
+version: 2.1
+
+workflows:
+  my-workflow:
+    jobs:
+      - run-tests:
+          context:
+            - org-global
+            - my-context
+
+jobs:
+  run-tests:
+    docker:
+      - image: cimg/base:2020.01
+        auth:
+          username: mydockerhub-user
+          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
+    steps:
+      - checkout
+      - run:
+          name: "echo environment variables from org-global context"
+          command: echo $MY_ENV_VAR

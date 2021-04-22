@@ -25,3 +25,17 @@ It saves the time to fetch git repo
 
 No inheritance model in circle-ci.
 Plus execution of job from A to B
+
+Besides actual artifacts [.jar, .apk etc] text/html/pdf docs are also uploaded, plus directory as well
+use store_artifacts step and mention the path of doc/directory
+
+Hygiea shows build history -- graph
+plus sonar-scan results per build
+
+
+Haven't seen sonar-scan in circle-ci
+
+There is no multi-branch concept. For every created branch, workflow runs.
+within workflow, we can add branch constraints --> which branches allowded /ignored
+
+

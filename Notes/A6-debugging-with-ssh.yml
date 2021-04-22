@@ -1,0 +1,6 @@
+best way to troubleshoot problems is to SSH into a job and inspect things like log files, running processes, and directory paths
+
+
+Please note that a default CircleCI pipeline executes steps in a non-interactive shell and hence, there is the possibility
+that running steps using an interactive login may succeed, while failing in non-interactive mode.
+
