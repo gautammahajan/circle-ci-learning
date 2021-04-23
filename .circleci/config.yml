@@ -65,7 +65,6 @@ jobs:
     parameters:
       file:
         type: string
-    run: cat << parameters.file >>
     steps:
       - print:
           message: Printing << parameters.file >>
