@@ -47,6 +47,7 @@
 #      - build
 #      - deploy
 
+
 version: 2.1
 
 commands:
@@ -64,6 +65,7 @@ jobs:
     parameters:
       file:
         type: string
+    run: cat << parameters.file >>
     steps:
       - print:
           message: Printing << parameters.file >>
