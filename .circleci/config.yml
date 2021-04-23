@@ -12,37 +12,63 @@
 #    jobs:
 #      - welcome/run
 
+#
+#version: 2
+#jobs:
+#  build:
+#    docker:
+#      - image: circleci/node:7.10
+#    steps:
+#      - run: echo build
+#
+#  test:
+#    docker:
+#      - image: circleci/node:7.10
+#    steps:
+#      - run: echo test job
+#
+#  deploy:
+#    docker:
+#      - image: circleci/node:7.10
+#    steps:
+#      - run: echo deploy job
+#
+#
+#workflows:
+#  version: 2
+#  # Name the workflow "welcome"
+#  build-and-test:
+#    # Run the welcome/run job in its own container
+#    jobs:
+#      - build
+#      - test
+#  build-and-deploy:
+#    jobs:
+#      - build
+#      - deploy
 
-version: 2
+version: 2.1
+
+commands:
+  print:
+    parameters:
+      message:
+        type: string
+    steps:
+      - run: echo << parameters.message >>
+
 jobs:
-  build:
-    docker:
-      - image: circleci/node:7.10
+  cat-file:
+    parameters:
+      file:
+        type: string
     steps:
-      - run: echo build
-
-  test:
-    docker:
-      - image: circleci/node:7.10
-    steps:
-      - run: echo test job
-
-  deploy:
-    docker:
-      - image: circleci/node:7.10
-    steps:
-      - run: echo deploy job
-
+      - print:
+          message: Printing << parameters.file >>
+      - run: cat << parameters.file >>
 
 workflows:
-  version: 2
-  # Name the workflow "welcome"
-  build-and-test:
-    # Run the welcome/run job in its own container
+  my-workflow:
     jobs:
-      - build
-      - test
-  build-and-deploy:
-    jobs:
-      - build
-      - deploy
+      - cat-file:
+          file: test.txt

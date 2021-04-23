@@ -38,4 +38,7 @@ Haven't seen sonar-scan in circle-ci
 There is no multi-branch concept. For every created branch, workflow runs.
 within workflow, we can add branch constraints --> which branches allowded /ignored
 
+Test-suite runs parallel based parallelism given.
+
+
 
