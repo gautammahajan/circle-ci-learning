@@ -59,6 +59,8 @@ commands:
 
 jobs:
   cat-file:
+    docker:
+      - image: circleci/node:7.10
     parameters:
       file:
         type: string
